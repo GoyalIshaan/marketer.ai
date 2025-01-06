@@ -27,22 +27,17 @@ type Campaign struct {
 	CreatedAt time.Time `json:"created_at"`
 	StartDate time.Time `json:"start_date"`
 	EndDate time.Time `json:"end_date"`
+	Contents []Content `json:"contents"`
 }
 
-type CampaignStatus string
-
-const (
-	CampaignStatusPending CampaignStatus = "pending"
-	CampaignStatusRunning CampaignStatus = "running"
-	CampaignStatusCompleted CampaignStatus = "completed"
-	CampaignStatusFailed CampaignStatus = "failed"
-)
-
-type Platform string
-const (
-	PlatformFacebook Platform = "facebook"
-	PlatformInstagram Platform = "instagram"
-	PlatformTwitter Platform = "twitter"
-	PlatformLinkedin Platform = "linkedin"
-	PlatformYoutube Platform = "youtube"
-)
+type Content struct {
+	ID uint `json:"id" gorm:"primaryKey"`
+	CampaignID uint `json:"campaign_id" gorm:"not null"`
+	Campaign Campaign `json:"campaign" gorm:"foreignKey:CampaignID"`
+	Title string `json:"title"`
+	Content string `json:"content"`
+	ContentType ContentType `json:"content_type"`
+	Status ContentStatus `json:"status"`
+	CreatedAt time.Time `json:"created_at"`
+	Hashtags pq.StringArray `json:"hashtags" gorm:"type:text[]"`
+}

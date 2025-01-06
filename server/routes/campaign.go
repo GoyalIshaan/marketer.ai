@@ -11,6 +11,9 @@ import (
 
 func CampaignRouter(router fiber.Router) {
 	campaignGroup := router.Group("/campaign")
+	singularCampaignGroup := campaignGroup.Group("/:id")
+
+	ContentRoutes(singularCampaignGroup)
 
 	campaignGroup.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello, campaign!")
