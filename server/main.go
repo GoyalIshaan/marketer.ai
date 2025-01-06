@@ -12,7 +12,7 @@ import (
 func main() {
 
 	database.ConnectDB()
-	
+
 	app := fiber.New()
 	app.Use(logger.New())
 
@@ -23,4 +23,5 @@ func main() {
 	})
 
 	log.Fatal(app.Listen(":3000"))
+
 }
