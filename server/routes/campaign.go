@@ -26,15 +26,11 @@ func CampaignRouter(router fiber.Router) {
 		newCampaignRequest := new(models.CampaignRequest)
 
 		if err := context.BodyParser(newCampaignRequest); err != nil {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
 		}
 
 		if !validation.IsValidCampaignRequest(*newCampaignRequest) {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid campaign request",
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Invalid campaign request")
 		}
 
 		newCampaign := models.Campaign{
@@ -50,9 +46,7 @@ func CampaignRouter(router fiber.Router) {
 
 		result := database.DB.Create(&newCampaign)
 		if result.Error != nil {
-			return context.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": result.Error.Error(),
-			})
+			return fiber.NewError(fiber.StatusInternalServerError, "Failed to create campaign")
 		}
 
 		return context.Status(fiber.StatusCreated).JSON(fiber.Map{
@@ -65,23 +59,17 @@ func CampaignRouter(router fiber.Router) {
 	campaignGroup.Get("/:id", func(context *fiber.Ctx) error {
 		campaignId, err := strconv.Atoi(context.Params("id"))
 		if err != nil {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid campaign ID",
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Invalid campaign ID")
 		}
 
 		if !validation.IsValidCampaignId(uint(campaignId)) {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Campaign not found",
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Campaign not found")
 		}
 
 		var campaign models.Campaign
 		result := database.DB.First(&campaign, uint(campaignId))
 		if result.Error != nil {
-			return context.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": result.Error.Error(),
-			})
+			return fiber.NewError(fiber.StatusNotFound, "Campaign not found")
 		}
 
 		return context.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -94,29 +82,21 @@ func CampaignRouter(router fiber.Router) {
 	campaignGroup.Put("/:id", func(context *fiber.Ctx) error {
 		campaignId, err := strconv.Atoi(context.Params("id"))
 		if err != nil {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid campaign ID",
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Invalid campaign ID")
 		}
 
 		if !validation.IsValidCampaignId(uint(campaignId)) {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Campaign not found",
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Campaign not found")
 		}
 
 		updateCampaignRequest := new(models.CampaignRequest)
 
 		if err := context.BodyParser(updateCampaignRequest); err != nil {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
 		}
 
 		if !validation.IsValidCampaignRequest(*updateCampaignRequest) {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid campaign update request",
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Invalid campaign update request")
 		}
 
 		updateCampaign := models.Campaign{
@@ -133,9 +113,7 @@ func CampaignRouter(router fiber.Router) {
 
 		result := database.DB.Model(&models.Campaign{}).Where("id = ?", updateCampaign.ID).Updates(&updateCampaign)
 		if result.Error != nil {
-			return context.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": result.Error.Error(),
-			})
+			return fiber.NewError(fiber.StatusInternalServerError, "Failed to update campaign")
 		}
 
 		return context.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -148,22 +126,16 @@ func CampaignRouter(router fiber.Router) {
 	campaignGroup.Delete("/:id", func(context *fiber.Ctx) error {
 		campaignId, err := strconv.Atoi(context.Params("id"))
 		if err != nil {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid campaign ID",
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Invalid campaign ID")
 		}
 
 		if !validation.IsValidCampaignId(uint(campaignId)) {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Campaign not found",
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Campaign not found")
 		}
 
 		result := database.DB.Delete(&models.Campaign{}, uint(campaignId))
 		if result.Error != nil {
-			return context.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": result.Error.Error(),
-			})
+			return fiber.NewError(fiber.StatusInternalServerError, "Failed to delete campaign")
 		}
 
 		return context.Status(fiber.StatusOK).JSON(fiber.Map{

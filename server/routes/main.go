@@ -8,6 +8,9 @@ import (
 
 func MainRouter(app *fiber.App) {
 
+	app.Use(middleware.RateLimiter())
+	app.Use(middleware.ErrorHandler())
+
 	api := app.Group("/api")
 
 	api.Post("/login", LoginRouter)

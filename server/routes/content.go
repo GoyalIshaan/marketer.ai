@@ -23,26 +23,19 @@ func ContentRoutes(router fiber.Router) {
 	// @Route api/protected/campaign/:id/content/
 	contentGroup.Post("/", func(context *fiber.Ctx) error {
 		campaignId, err := strconv.Atoi(context.Params("id"))
-		log.Println(context.Params("id"))
 		if err != nil {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Invalid campaign ID")
 		}
 
 		generateContentRequest := models.GenerateContentRequest{}
 		if err := context.BodyParser(&generateContentRequest); err != nil {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Invalid request body")
 		}
 
 		campaign := models.Campaign{}
 		campaignFindResult := database.DB.First(&campaign, campaignId)
 		if campaignFindResult.Error != nil {
-			return context.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": campaignFindResult.Error.Error(),
-			})
+			return fiber.NewError(fiber.StatusNotFound, "Campaign not found")
 		}
 
 		promptContentResponse := models.PromptContentResponse{
@@ -53,9 +46,7 @@ func ContentRoutes(router fiber.Router) {
 
 		aiContent, err := ai.GenerateContent(aihandlers.PromptGenerator(promptContentResponse))
 		if err != nil {
-			return context.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return fiber.NewError(fiber.StatusInternalServerError, "Failed to generate content")
 		}
 
 		log.Println(aiContent)
@@ -72,9 +63,7 @@ func ContentRoutes(router fiber.Router) {
 
 		contentCreationResult := database.DB.Create(&newCampaignContent)
 		if contentCreationResult.Error != nil {
-			return context.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": contentCreationResult.Error.Error(),
-			})
+			return fiber.NewError(fiber.StatusInternalServerError, "Failed to create content")
 		}
 
 		return context.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -87,17 +76,13 @@ func ContentRoutes(router fiber.Router) {
 	contentGroup.Get("/:contentId", func(context *fiber.Ctx) error {
 		contentId, err := strconv.Atoi(context.Params("contentId"))
 		if err != nil {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Invalid content ID")
 		}
 
 		content := models.Content{}
 		result := database.DB.First(&content, contentId)
 		if result.Error != nil {
-			return context.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": result.Error.Error(),
-			})
+			return fiber.NewError(fiber.StatusNotFound, "Content not found")
 		}
 		
 		return context.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -111,25 +96,19 @@ func ContentRoutes(router fiber.Router) {
 	contentGroup.Patch("/:contentId/status", func(context *fiber.Ctx) error {
 		contentId, err := strconv.Atoi(context.Params("contentId"))
 		if err != nil {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Invalid content ID")
 		}
 
 		content := models.Content{}
 		result := database.DB.First(&content, contentId)
 		if result.Error != nil {
-			return context.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": result.Error.Error(),
-			})
+			return fiber.NewError(fiber.StatusNotFound, "Content not found")
 		}
 
 		content.Status = models.ContentStatusPublished
 		patchingResult := database.DB.Save(&content)
 		if patchingResult.Error != nil {
-			return context.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": patchingResult.Error.Error(),
-			})
+			return fiber.NewError(fiber.StatusInternalServerError, "Failed to update content status")
 		}
 
 		return context.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -142,16 +121,12 @@ func ContentRoutes(router fiber.Router) {
 	contentGroup.Delete("/:contentId", func(context *fiber.Ctx) error {
 		contentId, err := strconv.Atoi(context.Params("contentId"))
 		if err != nil {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Invalid content ID")
 		}
 
 		result :=database.DB.Delete(&models.Content{}, contentId)
 		if result.Error != nil {
-			return context.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": result.Error.Error(),
-			})
+			return fiber.NewError(fiber.StatusInternalServerError, "Failed to delete content")
 		}
 
 		return context.Status(fiber.StatusOK).JSON(fiber.Map{

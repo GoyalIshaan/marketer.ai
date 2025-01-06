@@ -13,8 +13,7 @@ import (
 func UserRouter(router fiber.Router) {
 
 	userGroup := router.Group("/user")
-
-
+	
 	// @Description Get the current user
 	// @Route api/protected/user/me
 	userGroup.Get("/me", func(c *fiber.Ctx) error {
@@ -34,23 +33,17 @@ func UserRouter(router fiber.Router) {
 	userGroup.Get("/:id", func(context *fiber.Ctx) error {
 		userId, err := strconv.Atoi(context.Params("id"))
 		if err != nil {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid user ID",
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Invalid user ID")
 		}
 
 		if !validation.IsValidUserId(uint(userId)) {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "User not found",
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "User not found")
 		}
 
 		var user models.User
 		result := database.DB.First(&user, uint(userId))
 		if result.Error != nil {
-			return context.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": result.Error.Error(),
-			})
+			return fiber.NewError(fiber.StatusNotFound, "User not found")
 		}
 
 		return context.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -63,17 +56,13 @@ func UserRouter(router fiber.Router) {
 	userGroup.Get("/:id/campaigns", func(context *fiber.Ctx) error {
 		userId, err := strconv.Atoi(context.Params("id"))
 		if err != nil {
-			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"error": "Invalid user ID",
-			})
+			return fiber.NewError(fiber.StatusBadRequest, "Invalid user ID")
 		}
 
 		var campaigns []models.Campaign
 		result := database.DB.Where("user_id = ?", uint(userId)).Find(&campaigns)
 		if result.Error != nil {
-			return context.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": result.Error.Error(),
-			})
+			return fiber.NewError(fiber.StatusInternalServerError, "Failed to fetch campaigns")
 		}
 
 		return context.Status(fiber.StatusOK).JSON(fiber.Map{
