@@ -9,13 +9,10 @@ import (
 
 func RateLimiter() fiber.Handler {
 	return limiter.New(limiter.Config{
-		Max:        100,
+		Max:        50,
 		Expiration: 30 * time.Second,
 		LimitReached: func(c *fiber.Ctx) error {
-			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
-				"error":   "Too many requests",
-				"message": "Please try again later.",
-			})
+			return fiber.NewError(fiber.StatusTooManyRequests, "Too many requests")
 		},
 	})
 }

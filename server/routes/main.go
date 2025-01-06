@@ -8,8 +8,8 @@ import (
 
 func MainRouter(app *fiber.App) {
 
-	app.Use(middleware.RateLimiter())
 	app.Use(middleware.ErrorHandler())
+	app.Use(middleware.RateLimiter())
 
 	api := app.Group("/api")
 
