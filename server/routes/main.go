@@ -9,5 +9,5 @@ func MainRouter(app *fiber.App) {
 		return c.SendString("Hello, users!")
 	})
 
-	app.Post("/login", AuthRouter)
+	app.Post("/login", LoginRouter)
 }
