@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"log"
 	"marketer-ai-backend/ai"
 	aihandlers "marketer-ai-backend/ai/handlers"
 	"marketer-ai-backend/database"
@@ -20,7 +21,15 @@ func ContentRoutes(router fiber.Router) {
 
 	// @Description Generate content
 	// @Route api/protected/campaign/:id/content/
-	contentGroup.Post("/generate", func(context *fiber.Ctx) error {
+	contentGroup.Post("/", func(context *fiber.Ctx) error {
+		campaignId, err := strconv.Atoi(context.Params("id"))
+		log.Println(context.Params("id"))
+		if err != nil {
+			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+
 		generateContentRequest := models.GenerateContentRequest{}
 		if err := context.BodyParser(&generateContentRequest); err != nil {
 			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -29,7 +38,7 @@ func ContentRoutes(router fiber.Router) {
 		}
 
 		campaign := models.Campaign{}
-		campaignFindResult := database.DB.First(&campaign, generateContentRequest.CampaignID)
+		campaignFindResult := database.DB.First(&campaign, campaignId)
 		if campaignFindResult.Error != nil {
 			return context.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"error": campaignFindResult.Error.Error(),
@@ -49,11 +58,13 @@ func ContentRoutes(router fiber.Router) {
 			})
 		}
 
-		title, content := aihandlers.ParseGeneratedContent(aiContent)
+		log.Println(aiContent)
+
+		title , content := aihandlers.ParseContent(aiContent)
 		newCampaignContent := models.Content{
 			Title: title,
 			Content: content,
-			CampaignID: generateContentRequest.CampaignID,
+			CampaignID: uint(campaignId),
 			ContentType: generateContentRequest.ContentType,
 			Hashtags: generateContentRequest.Hashtags,
 			Status: models.ContentStatusDraft,
@@ -72,9 +83,9 @@ func ContentRoutes(router fiber.Router) {
 	})
 
 	// @Description Get a specific content
-	// @Route api/protected/campaign/:id/content/:id
-	contentGroup.Get("/:id", func(context *fiber.Ctx) error {
-		contentId, err := strconv.Atoi(context.Params("id"))
+	// @Route api/protected/campaign/:id/content/:contentId
+	contentGroup.Get("/:contentId", func(context *fiber.Ctx) error {
+		contentId, err := strconv.Atoi(context.Params("contentId"))
 		if err != nil {
 			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": err.Error(),
@@ -90,14 +101,15 @@ func ContentRoutes(router fiber.Router) {
 		}
 		
 		return context.Status(fiber.StatusOK).JSON(fiber.Map{
+			"message": "Content created successfully",
 			"content": content,
 		})
 	})
 
 	// @Description Update Content Status
-	// @Route api/protected/campaign/:id/content/:id/
-	contentGroup.Patch("/:id/status", func(context *fiber.Ctx) error {
-		contentId, err := strconv.Atoi(context.Params("id"))
+	// @Route api/protected/campaign/:id/content/:contentId/
+	contentGroup.Patch("/:contentId/status", func(context *fiber.Ctx) error {
+		contentId, err := strconv.Atoi(context.Params("contentId"))
 		if err != nil {
 			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": err.Error(),
@@ -126,9 +138,9 @@ func ContentRoutes(router fiber.Router) {
 	})
 
 	// @Description Delete Content
-	// @Route api/protected/campaign/:id/content/:id
-	contentGroup.Delete("/:id", func(context *fiber.Ctx) error {
-		contentId, err := strconv.Atoi(context.Params("id"))
+	// @Route api/protected/campaign/:id/content/:contentId
+	contentGroup.Delete("/:contentId", func(context *fiber.Ctx) error {
+		contentId, err := strconv.Atoi(context.Params("contentId"))
 		if err != nil {
 			return context.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"error": err.Error(),

@@ -2,7 +2,6 @@ package database
 
 import (
 	"log"
-	"marketer-ai-backend/models"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -25,7 +24,6 @@ func ConnectDB() {
 	}
 	DB = db
 	log.Println("Connected to database")
-	Migrate(models.User{}, models.Campaign{}, models.Content{})
 }
 
 func Migrate(models ...interface{}) {

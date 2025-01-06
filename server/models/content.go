@@ -22,7 +22,6 @@ const (
 )
 
 type GenerateContentRequest struct {
-	CampaignID uint `json:"campaign_id"`
 	ContentType ContentType `json:"content_type"`
 	Hashtags pq.StringArray `json:"hashtags" gorm:"type:text[]"`
 }
